@@ -31,6 +31,7 @@ def get_user_session(f_name, session=3600):
     print(f'Total session : {len(all_session)}')
 
     with open('suumo_sess_data.csv', 'w') as out_f:
+        print("SessionID,Time,ItemID", file=out_f)
         for idx, session in tqdm(enumerate(all_session)):
             for ts, item_id in session:
                 print(f"{idx},{ts},{item_id}", file=out_f)
