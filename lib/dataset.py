@@ -136,8 +136,7 @@ def test_data_handler(path, itemmap, last_N=10):
             history_S = [int(x.split(':')[1]) for x in history_events[-last_N:]]
             pred_S = [int(x.split(':')[1]) for x in predict_events]
             history_S_id = torch.LongTensor([index_map[x] for x in history_S if x in index_map])
-            pred_S_id = torch.LongTensor([index_map[x] for x in pred_S if x in index_map])
-            print(history_S_id)
+            pred_S_id = set([index_map[x] for x in pred_S if x in index_map])
             res.append((history_S_id, pred_S_id))
     return res
 
