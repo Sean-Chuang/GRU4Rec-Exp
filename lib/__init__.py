@@ -1,4 +1,4 @@
-from .dataset import Dataset, DataLoader
+from .dataset import Dataset, DataLoader, test_data_handler
 from .model import GRU4REC
 from .metric import get_mrr, get_recall, evaluate
 from .evaluation import Evaluation

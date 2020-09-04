@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import torch
+from tqdm import tqdm
 
 
 class Dataset(object):
@@ -122,3 +123,18 @@ class DataLoader():
                 iters[idx] = maxiter
                 start[idx] = click_offsets[session_idx_arr[maxiter]]
                 end[idx] = click_offsets[session_idx_arr[maxiter] + 1]
+
+
+def test_data_handler(path, itemmap, last_N=10):
+    res = []
+    with open(path, 'r') as in_f:
+        for line in tqdm(in_f):
+            user, is_sn_user, history, predict = line.rstrip().split('\t')
+            history_events = history.split('#')
+            predict_events = predict.split('#')
+            history_S = history_events[-last_N:]
+            history_S_id = torch.LongTensor([itemmap[x] for x in history_S if x in itemmap])
+            pred_S_id = torch.LongTensor([itemmap[x] for x in predict_events if x in itemmap])
+            res.append((history_S, pred_S_id))
+    return res
+

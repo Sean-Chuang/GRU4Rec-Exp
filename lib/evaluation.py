@@ -30,9 +30,28 @@ class Evaluation(object):
                 # torch.Tensor.item() to get a Python number from a tensor containing a single value
                 losses.append(loss.item())
                 recalls.append(recall)
-                mrrs.append(mrr)
+                mrrs.append(mrr.item())
         mean_losses = np.mean(losses)
         mean_recall = np.mean(recalls)
         mean_mrr = np.mean(mrrs)
 
         return mean_losses, mean_recall, mean_mrr
+
+
+    def eval_v1(self, eval_data_list):
+        self.model.eval()
+        recalls = []
+        mrrs = []
+
+        with torch.no_grad():
+            hidden = self.model.init_hidden()
+            for ii, (history_S, pred_S) in tqdm(enumerate(eval_data_list)):
+                history_S_id = history_S_id.to(self.device)
+                pred_S_id = pred_S_id.to(self.device)
+
+                input_length = history_S_id.size()[0]
+                for ei in range(input_length):
+                    output, hidden = self.model((history_S_id[ei], hidden)
+
+                print(torch.topk(output, self.topk, -1))
+
