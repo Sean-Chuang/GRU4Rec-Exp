@@ -45,13 +45,14 @@ class Evaluation(object):
 
         with torch.no_grad():
             hidden = self.model.init_hidden()
-            for ii, (history_S, pred_S) in tqdm(enumerate(eval_data_list)):
+            for ii, (history_S_id, pred_S_id) in tqdm(enumerate(eval_data_list)):
                 history_S_id = history_S_id.to(self.device)
                 pred_S_id = pred_S_id.to(self.device)
 
                 input_length = history_S_id.size()[0]
+                hidden = self.model.init_hidden()
+                output = None
                 for ei in range(input_length):
-                    output, hidden = self.model((history_S_id[ei], hidden)
-
+                    output, hidden = self.model(history_S_id[ei], hidden)
                 print(torch.topk(output, self.topk, -1))
 

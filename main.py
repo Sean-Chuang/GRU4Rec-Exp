@@ -91,9 +91,8 @@ def main():
 
     train_data = lib.Dataset(os.path.join(args.data_folder, args.train_data))
     valid_data = lib.Dataset(os.path.join(args.data_folder, args.valid_data), itemmap=train_data.itemmap)
-    test_data = lib.test_data_handler(os.path.join(args.data_folder, args.test_data), train_data.itemmap, lastN=10)
+    test_data = lib.test_data_handler(os.path.join(args.data_folder, args.test_data), train_data.itemmap, last_N=10)
     make_checkpoint_dir()
-        
     #set all the parameters according to the defined arguments
     input_size = len(train_data.items)
     hidden_size = args.hidden_size

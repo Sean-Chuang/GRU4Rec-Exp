@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import torch
 from tqdm import tqdm
-
+from collections import defaultdict
 
 class Dataset(object):
     def __init__(self, path, sep=',', session_key='SessionID', item_key='ItemID', time_key='Time', n_sample=-1, itemmap=None, itemstamp=None, time_sort=False):
@@ -127,14 +127,17 @@ class DataLoader():
 
 def test_data_handler(path, itemmap, last_N=10):
     res = []
+    index_map = itemmap.set_index('ItemID')['item_idx'].to_dict(defaultdict(int))
     with open(path, 'r') as in_f:
         for line in tqdm(in_f):
             user, is_sn_user, history, predict = line.rstrip().split('\t')
             history_events = history.split('#')
             predict_events = predict.split('#')
-            history_S = history_events[-last_N:]
-            history_S_id = torch.LongTensor([itemmap[x] for x in history_S if x in itemmap])
-            pred_S_id = torch.LongTensor([itemmap[x] for x in predict_events if x in itemmap])
-            res.append((history_S, pred_S_id))
+            history_S = [int(x.split(':')[1]) for x in history_events[-last_N:]]
+            pred_S = [int(x.split(':')[1]) for x in predict_events]
+            history_S_id = torch.LongTensor([index_map[x] for x in history_S if x in index_map])
+            pred_S_id = torch.LongTensor([index_map[x] for x in pred_S if x in index_map])
+            print(history_S_id)
+            res.append((history_S_id, pred_S_id))
     return res
 
