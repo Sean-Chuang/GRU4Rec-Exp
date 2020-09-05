@@ -47,24 +47,31 @@ class Evaluation(object):
             hidden = self.model.init_hidden()
             for ii, (history_S_id, pred_S_id) in tqdm(enumerate(eval_data_list)):
                 history_S_id = history_S_id.to(self.device)
-                pred_S_id = pred_S_id.to(self.device)
+                #pred_S_id = pred_S_id.to(self.device)
 
                 input_length = history_S_id.size()[0]
                 hidden = self.model.init_hidden()
                 output = None
-                for ei in range(input_length):
+                end = min(3, input_length)
+                start = max(0, end - 1)
+    
+                for ei in range(end):
                     output, hidden = self.model(history_S_id[ei], hidden)
 
                 if output is None:
                     continue
                 else:
-                    pred = torch.topk(output[0], self.topk, -1).tolist()
+                    _, pred = torch.topk(output[0], self.topk, -1)
+                    pred = pred.tolist()
+                    #print(pred_S_id, pred)
                     metrics_map = ['HR', 'HR@', 'MRR', 'NDCG']
                     out = lib.metrics(pred_S_id, pred, metrics_map)
+                    #print(out)
                     next_interesting.append(out)
 
                     metrics_map = ['P&R', 'MAP']
                     out =lib. metrics(pred_S_id, pred, metrics_map)
+                    #print(out[0], [out[1]])
                     whole_day.append(out[0] + [out[1]])
 
         interesting_metric = np.array(next_interesting)
@@ -79,6 +86,6 @@ class Evaluation(object):
         else:
             Precison, Recall, F1, MAP = 0, 0, 0, 0
 
-        print(f'{HR_interesting:.4f}\t{HR_at_interesting:.4f}\t{MRR_interesting:.4f}\t{NDCG_interesting:.4f}')
-        print(f'{Precison:.4f}\t{Recall:.4f}\t{F1:.4f}\t{MAP:.4f}')
+        print(f'HR:{HR_interesting:.4f}\tHR@10:{HR_at_interesting:.4f}\tMRR:{MRR_interesting:.4f}\tNDCG:{NDCG_interesting:.4f}')
+        print(f'P:{Precison:.4f}\tR:{Recall:.4f}\tF1:{F1:.4f}\tMAP:{MAP:.4f}')
 
