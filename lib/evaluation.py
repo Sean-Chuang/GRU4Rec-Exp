@@ -1,6 +1,7 @@
 import lib
 import numpy as np
 import torch
+from collections import defaultdict
 from tqdm import tqdm
 
 class Evaluation(object):
@@ -38,7 +39,7 @@ class Evaluation(object):
         return mean_losses, mean_recall, mean_mrr
 
 
-    def eval_v1(self, eval_data_list):
+    def eval_v1(self, eval_data_list, topN=10):
         self.model.eval()
         next_interesting = []
         whole_day = []
@@ -50,29 +51,29 @@ class Evaluation(object):
                 #pred_S_id = pred_S_id.to(self.device)
 
                 input_length = history_S_id.size()[0]
-                hidden = self.model.init_hidden()
-                output = None
-                end = min(3, input_length)
-                start = max(0, end - 1)
-    
-                for ei in range(end):
+                recommend = defaultdict(float)
+                rank_weight = np.array([1 / np.log2(rank + 2) for rank in range(input_length-1, -1, -1)])
+                for ei in range(input_length):
                     output, hidden = self.model(history_S_id[ei], hidden)
-
-                if output is None:
-                    continue
-                else:
-                    _, pred = torch.topk(output[0], self.topk, -1)
+                    scores, pred = torch.topk(output[0], self.topk, -1)
                     pred = pred.tolist()
-                    #print(pred_S_id, pred)
-                    metrics_map = ['HR', 'HR@', 'MRR', 'NDCG']
-                    out = lib.metrics(pred_S_id, pred, metrics_map)
-                    #print(out)
-                    next_interesting.append(out)
+                    scores = scores.tolist()
+                    for _idx, _s in zip(pred, scores):
+                        recommend[_idx] += _s * rank_weight[ei]
 
-                    metrics_map = ['P&R', 'MAP']
-                    out =lib. metrics(pred_S_id, pred, metrics_map)
-                    #print(out[0], [out[1]])
-                    whole_day.append(out[0] + [out[1]])
+                final_items = sorted(recommend.items(), key=lambda x:x[1], reverse=True)
+                pred_res = [item for item, score in final_items[:topN]]
+                # print(pred_S_id, pred_res)
+                metrics_map = ['HR', 'HR@', 'MRR', 'NDCG']
+                out = lib.metrics(pred_S_id, pred_res, metrics_map)
+                #print(out)
+                next_interesting.append(out)
+
+                metrics_map = ['P&R', 'MAP']
+                out =lib. metrics(pred_S_id, pred_res, metrics_map)
+                #print(out[0], [out[1]])
+                whole_day.append(out[0] + [out[1]])
+
 
         interesting_metric = np.array(next_interesting)
         day_metric = np.array(whole_day)

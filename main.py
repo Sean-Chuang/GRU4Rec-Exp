@@ -92,7 +92,7 @@ def main():
     train_data = lib.Dataset(os.path.join(args.data_folder, args.train_data))
     valid_data = lib.Dataset(os.path.join(args.data_folder, args.valid_data), itemmap=train_data.itemmap)
     test_data = lib.test_data_handler(os.path.join(args.data_folder, args.test_data), train_data.itemmap, last_N=10)
-    make_checkpoint_dir()
+
     #set all the parameters according to the defined arguments
     input_size = len(train_data.items)
     hidden_size = args.hidden_size
@@ -114,6 +114,7 @@ def main():
     #loss function
     loss_function = lib.LossFunction(loss_type=loss_type, use_cuda=args.cuda) #cuda is used with cross entropy only
     if not args.is_eval: #training
+        make_checkpoint_dir()
         #Initialize the model
         model = lib.GRU4REC(input_size, hidden_size, output_size, final_act=final_act,
                             num_layers=num_layers, use_cuda=args.cuda, batch_size=batch_size,
